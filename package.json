@@ -1,0 +1,26 @@
+{
+  "name": "fcc-challenges-adv-node-express",
+  "version": "0.0.1",
+  "description": "Advanced Node and Express Challenges for freeCodeCamp's Information Security and Quality Assurance Certification",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "keywords": [
+    "node",
+    "express"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.5",
+    "express": "^4.16.4",
+    "helmet": "^3.15.1",
+    "mongodb": "^3.1.13"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.10"
+  }
+}
