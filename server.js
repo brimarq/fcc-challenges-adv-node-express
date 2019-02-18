@@ -17,7 +17,7 @@ app.set('view engine', 'pug');
 app.route('/')
   .get((req, res) => {
     // render view template
-    res.render('pug/index');
+    res.render('pug/index', {title: 'Hello', message: 'Please login'});
   });
 
 app.listen(process.env.PORT || 3000, () => {
