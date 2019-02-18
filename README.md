@@ -3,3 +3,74 @@ https://learn.freecodecamp.org/information-security-and-quality-assurance/advanc
 
 Built upon [Joseph Livengood](https://github.com/JosephLivengood)'s [boilerplate code](https://github.com/freeCodeCamp/boilerplate-advancednode/blob/gomix/package.json).  
 
+## CHALLENGES  
+
+### 1. Setup a Template Engine  
+
+Install Pug  
+```bash
+npm install pug
+```
+Set the templating engine in `server.js`  
+```js
+// Set view engine to use pug
+app.set('view engine', 'pug');
+```
+Change the response in the index route to `res.render()` using the path to the `index.pug` file.  
+```js
+app.route('/').get((req, res) => {
+  // render view template
+  res.render('pug/index');
+});
+```
+
+### 2. Use a Template Engine's Powers  
+Variables can be passed from the server to the template file before rendering into HTML; and, in the pug file, they may be referenced either inline with other text as `#{variable_name}` or by appending them directly to an element `p= variable_name` (notice no space between `p` and `=`).  
+
+To render the variables within the template, send them within an object as the second argument in `res.render()`. Here, send the variables `title` and `message` to `index.pug`.  
+```js
+app.route('/').get((req, res) => {
+  // render view template and send template variable values
+  res.render('pug/index', {title: 'Hello', message: 'Please login'});
+});
+```
+
+### 3. Setup Passport  
+
+### 4. Serialization of a User Object  
+
+### 5. Implement the Serialization of a Passport User  
+
+### 6. Authentication Strategies  
+
+### 7. How to Use Passport Strategies  
+
+### 8. Create New Middleware  
+
+### 9. How to Put a Profile Together  
+
+### 10. Logging a User Out  
+
+### 11. Registration of New Users  
+
+### 12. Hashing Your Passwords  
+
+### 13. Cleanup Your Project with Modules  
+
+### 14. Implementation of Social Authentication (I)  
+
+### 15. Implementation of Social Authentication (II)  
+
+### 16. Implementation of Social Authentication (III)  
+
+### 17. Setup the Environment  
+
+### 18. Communicate by Emitting  
+
+### 19. Handle a Disconnect  
+
+### 20. Authentication with Socket&#46;io  
+
+### 21. Announce New Users  
+
+### 22. Send and Display Chat Messages  
