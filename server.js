@@ -16,7 +16,7 @@ app.set('view engine', 'pug');
 
 app.route('/')
   .get((req, res) => {
-    // render view template
+    // render view template and send template variable values
     res.render('pug/index', {title: 'Hello', message: 'Please login'});
   });
 
