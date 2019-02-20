@@ -36,6 +36,12 @@ app.route('/').get((req, res) => {
 ```
 
 ### 3. Setup Passport  
+#### Install dependencies:  
+[Passport](https://github.com/jaredhanson/passport) is express-compatable middleware for authenticating requests in Node.js, and [express-session](https://www.npmjs.com/package/express-session) handles sessions by saving the sessionId on the client while storing the actual session *data* on the server. This way, the cookie on the client only stores a key to access the data on the server for authentication purposes. Also, for local development, [dotenv](https://www.npmjs.com/package/dotenv) will be used to access environment variables in an `.env` file (this package is is not needed on Glitch).  
+```bash
+npm install passport express-session && npm install dotenv --save-dev
+```
+
 
 ### 4. Serialization of a User Object  
 
