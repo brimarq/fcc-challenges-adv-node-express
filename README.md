@@ -37,9 +37,40 @@ app.route('/').get((req, res) => {
 
 ### 3. Setup Passport  
 #### Install dependencies:  
-[Passport](https://github.com/jaredhanson/passport) is express-compatable middleware for authenticating requests in Node.js, and [express-session](https://www.npmjs.com/package/express-session) handles sessions by saving the sessionId on the client while storing the actual session *data* on the server. This way, the cookie on the client only stores a key to access the data on the server for authentication purposes. Also, for local development, [dotenv](https://www.npmjs.com/package/dotenv) will be used to access environment variables in an `.env` file (this package is is not needed on Glitch).  
+[Passport](https://github.com/jaredhanson/passport) is express-compatable middleware for authenticating requests in Node.js, and [express-session](https://www.npmjs.com/package/express-session) handles sessions by saving the sessionId on the client while storing the actual session *data* on the server. This way, the cookie on the client only stores a key to access the data on the server for authentication purposes. Also, for local development, [dotenv](https://www.npmjs.com/package/dotenv) will be used to access environment variables in an `.env` file (this package is is not needed on Glitch). Install these packages and create the `.env` file:  
 ```bash
-npm install passport express-session && npm install dotenv --save-dev
+npm install passport express-session && npm install dotenv --save-dev && touch ./.env
+```
+#### Setup session settings and initialize Passport
+Create a `SESSION_SECRET` variable in the `.env` file and assign it a random value.  
+```bash
+echo SESSION_SECRET=$(openssl rand -hex 6) > ./.env
+``` 
+At the top of `server.js`, require and config `dotenv` before other `require` variables. Then, require `passport` and `express-session`.  
+```js
+'use strict';
+require('dotenv').config() // Comment-out this line on Glitch
+const express     = require('express');
+const bodyParser  = require('body-parser');
+const fccTesting  = require('./freeCodeCamp/fcctesting.js');
+const passport = require('passport'); 
+const session = require('express-session');
+```
+
+Setup app to use session with just a few basic options. The SESSION_SECRET created earlier is used to create the hash that will encrypt the cookie.  
+```js
+// Setup app to use session with just a few basic options
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: true,
+  saveUninitialized: true,
+}));
+```
+Setup middleware to initialize passport and use with session.  
+```js
+// Setup app to use Passport with session
+app.use(passport.initialize());
+app.use(passport.session());
 ```
 
 
