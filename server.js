@@ -7,6 +7,7 @@ const passport = require('passport');
 const session = require('express-session');
 const ObjectID = require('mongodb').ObjectID;
 const mongo = require('mongodb').MongoClient;
+const LocalStrategy = require('passport-local');
 
 const app = express();
 
@@ -50,6 +51,28 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, db) => {
       );
     });
 
+    passport.use(new LocalStrategy(
+      function(username, password, done) {
+        db.collection('users').findOne({ username: username }, function (err, user) {
+          console.log('User '+ username +' attempted to log in.');
+          if (err) { return done(err); }
+          if (!user) { return done(null, false); }
+          if (password !== user.password) { return done(null, false); }
+          return done(null, user);
+        });
+      }
+    ));
+
+    app.route('/').get((req, res) => {
+      // render view template and send template variable values
+      res.render('pug/index', {title: 'Hello', message: 'Please login', showLogin: true});
+    });
+
+    app.route('/login').post(passport.authenticate('local', { failureRedirect: '/' }), (req, res) => {
+      if (err) return res.send(err.message);
+      res.send("User " + req.user + " is authenticated.");
+    });
+
     app.listen(process.env.PORT || 3000, () => {
       console.log("Listening on port " + process.env.PORT);
     });
@@ -58,10 +81,6 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, db) => {
 });
 
 
-app.route('/')
-  .get((req, res) => {
-    // render view template and send template variable values
-    res.render('pug/index', {title: 'Hello', message: 'Please login'});
-  });
+
 
 

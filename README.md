@@ -147,8 +147,47 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, db) => {
 ```
 
 ### 6. Authentication Strategies  
+A *strategy* is a way of authenticating a user. You can use a strategy for allowing users to authenticate based on locally saved information (if you have them register first) or from a [variety of providers](http://www.passportjs.org/packages/) such as Google or Github.  
+
+This project will use the [passport-local](http://www.passportjs.org/packages/passport-local/) strategy, so install it as a project dependency, then require it in `server.js`.  
+```bash
+npm install passport-local
+```
+```js
+const LocalStrategy = require('passport-local');
+```
+Next, direct passport to use an instantiated `LocalStrategy` object with a few settings defined. Make sure this (and everything else reliant upon the database) is encapsulated within the database connection.  
+```js
+passport.use(new LocalStrategy(
+  function(username, password, done) {
+    db.collection('users').findOne({ username: username }, function (err, user) {
+      console.log('User '+ username +' attempted to log in.');
+      if (err) { return done(err); }
+      if (!user) { return done(null, false); }
+      if (password !== user.password) { return done(null, false); }
+      return done(null, user);
+    });
+  }
+));
+```
+This strategy defines the local authentication process. It first checks for a matching user in the database against the submitted username, then checks for a matching password. If no errors are encountered, the user object is returned and authentication succeeds. 
+
+Each Passport strategy will have its own unique settings to configure, and some (e.g. [passport-github](http://www.passportjs.org/packages/passport-github/)) use OAuth instead of username/password for authentication. In each case, the proper usage is documented within its respective repository.  
+
+The next challenge will setup the authentication strategy to be called in response to submitted form data in order to validate the user. 
 
 ### 7. How to Use Passport Strategies  
+In the `index.pug` file, there is a login form within the `if showLogin` conditional that is currently not being rendered because the `showLogin` variable has yet to be defined.  
+
+Within the res.render of the base URL route, add `showLogin: true` to the local variables object in order to render the login form upon page refresh.  
+```js
+app.route('/').get((req, res) => {
+  // render view template and send template variable values
+  res.render('pug/index', {title: 'Hello', message: 'Please login', showLogin: true});
+});
+```
+
+As the login form is setup to POST on `/login`, create the appropriate route to receive the request and authenticate the user.  
 
 ### 8. Create New Middleware  
 
