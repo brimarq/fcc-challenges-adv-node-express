@@ -73,7 +73,7 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) 
       res.redirect('/profile');
     });
 
-    app.route('/profile').get((req, res) => {
+    app.route('/profile').get(ensureAuthenticated, (req, res) => {
       // render view template 
       res.render('pug/profile');
     });
@@ -81,6 +81,14 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) 
     app.listen(process.env.PORT || 3000, () => {
       console.log("Listening on port " + process.env.PORT);
     });
+
+
+    function ensureAuthenticated(req, res, next) {
+      if (req.isAuthenticated()) {
+        return next();
+      }
+      res.redirect('/');
+    };
 
   }
 });

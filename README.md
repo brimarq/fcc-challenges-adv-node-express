@@ -208,6 +208,26 @@ app.route('/profile').get((req, res) => {
 ```
 
 ### 8. Create New Middleware  
+Currently, `/profile` is accessible by merely typing in the URL. Since this route is intended only for authenticated users, middleware is needed here to verify authentication before rendering the profile page. 
+
+Create a function `ensureAuthenticated(req, res, next)` to use as middleware that will call passport's `.isAuthenticated()` for verification of the request. If true, it continues; otherwise, redirect to the home page.  
+
+```js
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/');
+};
+```
+Now, add `ensureAuthenticated` as middleware to the `/profile` route handler, before the callback.  
+
+```js
+app.route('/profile').get(ensureAuthenticated, (req, res) => {
+  // render view template 
+  res.render('pug/profile');
+});
+```
 
 ### 9. How to Put a Profile Together  
 
