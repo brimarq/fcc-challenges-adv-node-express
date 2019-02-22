@@ -85,6 +85,16 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) 
       res.render(process.cwd() + '/views/pug/profile', {username: req.user.username});
     });
 
+    app.route('/logout').get((req, res) => {
+      req.logout();
+      res.redirect('/');
+    });
+
+    // 404 middleware to catch requests for undefined routes
+    app.use((req, res, next) => {
+      res.status(404).type('text').send('Not Found');
+    });
+
     app.listen(process.env.PORT || 3000, () => {
       console.log("Listening on port " + process.env.PORT);
     });

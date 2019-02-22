@@ -253,6 +253,20 @@ a(href='/logout') Logout
 ```
 
 ### 10. Logging a User Out  
+Now, create the `/logout` route referenced in the profile template from the last challenge. This route should simply unauthenticate the user and redirect to the homepage. Using passport, unauthenticating is done by calling `req.logout();` before redirecting.  
+```js
+app.route('/logout').get((req, res) => {
+  req.logout();
+  res.redirect('/');
+});
+```
+Also, after all the route handlers, it's a good idea to add middleware to handle any requests for routes that have not been defined.  
+```js
+// 404 middleware to catch requests for undefined routes
+app.use((req, res, next) => {
+  res.status(404).type('text').send('Not Found');
+});
+```
 
 ### 11. Registration of New Users  
 
