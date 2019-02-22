@@ -208,6 +208,13 @@ app.route('/profile').get((req, res) => {
 ```
 
 ### 8. Create New Middleware  
+
+NOTE: As of 2/21/2019, the [second test run against this challenge on the fCC platform](https://github.com/freeCodeCamp/freeCodeCamp/blob/master/curriculum/challenges/english/06-information-security-and-quality-assurance/advanced-node-and-express/create-new-middleware.english.md#tests) looks for the presence of the text 'Home page' on the home page generated from the `index.pug` template. If it's not there it will fail, even if this challenge is coded correctly! The workaround I used: change the description `meta` tag in the `head` of the template to this:  
+
+```pug
+meta(name='description', content='Home page')
+```
+
 Currently, `/profile` is accessible by merely typing in the URL. Since this route is intended only for authenticated users, middleware is needed here to verify authentication before rendering the profile page. 
 
 Create a function `ensureAuthenticated(req, res, next)` to use as middleware that will call passport's `.isAuthenticated()` for verification of the request. If true, it continues; otherwise, redirect to the home page.  
@@ -225,11 +232,25 @@ Now, add `ensureAuthenticated` as middleware to the `/profile` route handler, be
 ```js
 app.route('/profile').get(ensureAuthenticated, (req, res) => {
   // render view template 
-  res.render('pug/profile');
+  res.render(process.cwd() + '/views/pug/profile');
 });
 ```
 
-### 9. How to Put a Profile Together  
+### 9. How to Put a Profile Together   
+Now that only authenticated users can access `/profile`, the information contained in `req.user` can be used on the page.
+
+In the `/profile` route render method, pass an object with a local variable `username` set to `req.user.username` to be made available to the template.  
+```js
+app.route('/profile').get(ensureAuthenticated, (req, res) => {
+  res.render(process.cwd() + '/views/pug/profile', {username: req.user.username});
+});
+```
+In the `profile.pug` template, add an `h2` element with class `center` and id `welcome`, containing the text "Welcome, [supply username]! Also, add a link to `/logout`, which will be the route that will contain the code to unauthenticate the user.  
+
+```pug
+h2.center#welcome Welcome, #{username}!
+a(href='/logout') Logout
+```
 
 ### 10. Logging a User Out  
 
@@ -252,6 +273,7 @@ app.route('/profile').get(ensureAuthenticated, (req, res) => {
 ### 19. Handle a Disconnect  
 
 ### 20. Authentication with Socket&#46;io  
+https://www.freecodecamp.org/forum/t/youre-gonna-need-this-if-you-want-to-pass-authentication-with-socket-io-challenge/209460
 
 ### 21. Announce New Users  
 
