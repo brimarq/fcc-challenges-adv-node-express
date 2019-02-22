@@ -64,9 +64,16 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) 
       }
     ));
 
+    function ensureAuthenticated(req, res, next) {
+      if (req.isAuthenticated()) {
+        return next();
+      }
+      res.redirect('/');
+    };
+
     app.route('/').get((req, res) => {
       // render view template and send template variable values
-      res.render('pug/index', {title: 'Hello', message: 'Please login', showLogin: true});
+      res.render(process.cwd() + '/views/pug/index', {title: 'Hello', message: 'Please login', showLogin: true});
     });
 
     app.route('/login').post(passport.authenticate('local', { failureRedirect: '/' }), (req, res) => {
@@ -75,7 +82,7 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) 
 
     app.route('/profile').get(ensureAuthenticated, (req, res) => {
       // render view template 
-      res.render('pug/profile');
+      res.render(process.cwd() + '/views/pug/profile', {username: req.user.username});
     });
 
     app.listen(process.env.PORT || 3000, () => {
@@ -83,12 +90,7 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) 
     });
 
 
-    function ensureAuthenticated(req, res, next) {
-      if (req.isAuthenticated()) {
-        return next();
-      }
-      res.redirect('/');
-    };
+    
 
   }
 });
