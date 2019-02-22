@@ -115,9 +115,11 @@ In order to connect to the database once when the server starts and persist for 
 ```js
 const mongo = require('mongodb').MongoClient;
 ```
-Now, create a connection method after the session middleware with basic error handling that will only allow requests upon successful, error-free database connection. To do this, move the serialization functions and app listener into the connection method.  
+Now, create a connection method after the session and passport initialization  middleware with basic error handling. In order to only allow requests upon successful, error-free database connection, move the serialization functions, base URL route, and app listener into the connection method.  
 ```js
-mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, db) => {
+mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) => {
+  let db = client.db(); // .db('DB_NAME') defaults to the db in connection string if no DB_NAME is given here.
+
   if(err) {
     console.log('Database error: ' + err);
   } else {
@@ -136,6 +138,11 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, db) => {
           done(null, doc);
         }
       );
+    });
+
+    app.route('/').get((req, res) => {
+      // render view template and send template variable values
+      res.render('pug/index', {title: 'Hello', message: 'Please login'});
     });
 
     app.listen(process.env.PORT || 3000, () => {
@@ -187,7 +194,18 @@ app.route('/').get((req, res) => {
 });
 ```
 
-As the login form is setup to POST on `/login`, create the appropriate route to receive the request and authenticate the user.  
+As the login form is setup to POST on `/login`, a new POST route is needed to receive that request. In order to authenticate on this route with the `passport-local` strategy (with the optional redirection of any authentication failures back to the base URL), add the middleware `passport.authenticate('local', { failureRedirect: '/' })` as an argument before the callback. The response (which will only be sent if authentication is successful) should redirect to `/profile`, which will need another route handler that renders the `profile.pug` template in its response.  
+
+```js
+app.route('/login').post(passport.authenticate('local', { failureRedirect: '/' }), (req, res) => {
+  res.redirect('/profile');
+});
+
+app.route('/profile').get((req, res) => {
+  // render view template 
+  res.render('pug/profile');
+});
+```
 
 ### 8. Create New Middleware  
 

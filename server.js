@@ -30,7 +30,8 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, db) => {
+mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) => {
+  let db = client.db();
   if(err) {
     console.log('Database error: ' + err);
   } else {
@@ -69,8 +70,12 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, db) => {
     });
 
     app.route('/login').post(passport.authenticate('local', { failureRedirect: '/' }), (req, res) => {
-      if (err) return res.send(err.message);
-      res.send("User " + req.user + " is authenticated.");
+      res.redirect('/profile');
+    });
+
+    app.route('/profile').get((req, res) => {
+      // render view template 
+      res.render('pug/profile');
     });
 
     app.listen(process.env.PORT || 3000, () => {
