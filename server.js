@@ -64,6 +64,29 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) 
       }
     ));
 
+    /** CORRECTS fCC TESTS FAILING for "Registration of New Users" challenge (as of 2/22/2019)
+     * Tests not run asynchronously? Set ENABLE_DELAYS=true in .env to enable. 
+     * See issue: https://github.com/freeCodeCamp/freeCodeCamp/issues/17820#issue-338363681
+     */
+    if (process.env.ENABLE_DELAYS) app.use((req, res, next) => {
+      switch (req.method) {
+        case 'GET':
+          switch (req.url) {
+            case '/logout': return setTimeout(() => next(), 500);
+            case '/profile': return setTimeout(() => next(), 700);
+            default: next();
+          }
+        break;
+        case 'POST':
+          switch (req.url) {
+            case '/login': return setTimeout(() => next(), 900);
+            default: next();
+          }
+        break;
+        default: next();
+      }
+    });
+
     function ensureAuthenticated(req, res, next) {
       if (req.isAuthenticated()) {
         return next();
@@ -73,7 +96,7 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) 
 
     app.route('/').get((req, res) => {
       // render view template and send template variable values
-      res.render(process.cwd() + '/views/pug/index', {title: 'Hello', message: 'Please login', showLogin: true});
+      res.render(process.cwd() + '/views/pug/index', {title: 'Hello', message: 'Please login', showLogin: true, showRegistration: true});
     });
 
     app.route('/login').post(passport.authenticate('local', { failureRedirect: '/' }), (req, res) => {
@@ -89,6 +112,44 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) 
       req.logout();
       res.redirect('/');
     });
+
+    app.route('/register').post(
+      /** 1) Query the db w/err handling as middleware. If user exists, redirect to homepage;  
+       * otherwise, insert user into db. If error here, redirect to homepage; otherwise, 
+       * pass user to the next middleware for authentication.
+       */
+      (req, res, next) => {
+        db.collection('users').findOne({ username: req.body.username }, function (err, user) {
+          if(err) {
+            next(err);
+          } else if (user) {
+            res.redirect('/');
+          } else {
+            db.collection('users').insertOne(
+              {username: req.body.username, password: req.body.password},
+              (err, doc) => {
+                if(err) {
+                  res.redirect('/');
+                } else {
+                  next(null, user);
+                }
+              }
+            )
+          }
+        });
+      },
+
+      /** 2) Authenticate user as middleware. Failure redirects to home page */
+      passport.authenticate('local', { failureRedirect: '/' }),
+
+      /** 3) Callback that redirects authenticated user to profile page */
+      (req, res, next) => {
+        res.redirect('/profile');
+      }
+
+    );
+
+    app.use((req, res, next) => {console.log(req); next();});
 
     // 404 middleware to catch requests for undefined routes
     app.use((req, res, next) => {

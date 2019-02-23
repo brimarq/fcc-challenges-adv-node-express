@@ -270,6 +270,53 @@ app.use((req, res, next) => {
 
 ### 11. Registration of New Users  
 
+NOTE: As of 2/22/2019, this challenge will NOT pass the fCC tests, even if the functionality is correct. See the issue and workaround [here](https://github.com/freeCodeCamp/freeCodeCamp/issues/17820#issue-338363681).
+
+In the render method of the homepage route, add `showRegistration: true` to its local variables object in order to display the registration form from `index.pug` upon refresh of the home page.  
+```js
+app.route('/').get((req, res) => {
+  res.render(process.cwd() + '/views/pug/index', {title: 'Hello', message: 'Please login', showLogin: true, showRegistration: true});
+});
+```
+Since the registration form will POST to `/register` on submit, a new, corresponding route handler is needed that will 1) register the user, 2) authenticate the user, and 3) redirect to `/profile`.  
+```js
+app.route('/register').post(
+  /** 1) Query the db w/err handling as middleware. If user exists, redirect to homepage;  
+   * otherwise, insert user into db. If error here, redirect to homepage; otherwise, 
+   * pass user to the next middleware for authentication.
+   */
+  (req, res, next) => {
+    db.collection('users').findOne({ username: req.body.username }, function (err, user) {
+      if(err) {
+        next(err);
+      } else if (user) {
+        res.redirect('/');
+      } else {
+        db.collection('users').insertOne(
+          {username: req.body.username, password: req.body.password},
+          (err, doc) => {
+            if(err) {
+              res.redirect('/');
+            } else {
+              next(null, user);
+            }
+          }
+        )
+      }
+    });
+  },
+
+  /** 2) Authenticate user as middleware. Failure redirects to home page */
+  passport.authenticate('local', { failureRedirect: '/' }),
+
+  /** 3) Callback that redirects authenticated user to profile page */
+  (req, res, next) => {
+    res.redirect('/profile');
+  }
+  
+);
+```
+
 ### 12. Hashing Your Passwords  
 
 ### 13. Cleanup Your Project with Modules  
