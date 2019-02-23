@@ -5,6 +5,7 @@ Built upon [Joseph Livengood](https://github.com/JosephLivengood)'s [boilerplate
 
 ## CHALLENGES  
 
+---
 ### 1. Setup a Template Engine  
 
 Install Pug  
@@ -24,6 +25,7 @@ app.route('/').get((req, res) => {
 });
 ```
 
+---
 ### 2. Use a Template Engine's Powers  
 Variables can be passed from the server to the template file before rendering into HTML; and, in the pug file, they may be referenced either inline with other text as `#{variable_name}` or by appending them directly to an element `p= variable_name` (notice no space between `p` and `=`).  
 
@@ -35,6 +37,7 @@ app.route('/').get((req, res) => {
 });
 ```
 
+---
 ### 3. Setup Passport  
 #### Install dependencies:  
 [Passport](https://github.com/jaredhanson/passport) is express-compatable middleware for authenticating requests in Node.js, and [express-session](https://www.npmjs.com/package/express-session) handles sessions by saving the sessionId on the client while storing the actual session *data* on the server. This way, the cookie on the client only stores a key to access the data on the server for authentication purposes. Also, for local development, [dotenv](https://www.npmjs.com/package/dotenv) will be used to access environment variables in an `.env` file (this package is is not needed on Glitch). Install these packages and create the `.env` file:  
@@ -73,6 +76,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 ```
 
+---
 ### 4. Serialization of a User Object  
 Serialization and deserialization are important concepts in regards to authentication. To serialize an object means to convert its contents into a small key essentially that can then be deserialized into the original object. This is what allows us to know whos communicated with the server without having to send the authentication data like username and password at each request for a new page.
 
@@ -108,6 +112,7 @@ passport.deserializeUser((id, done) => {
 });
 ```
 
+---
 ### 5. Implement the Serialization of a Passport User  
 Create a new, empty Mongo database and db user on [mLab](https://mlab.com/welcome/), obtain the connection URI, and store it in a `MONGODB_URI` variable in `.env`.  
 
@@ -153,6 +158,7 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) 
 });
 ```
 
+---
 ### 6. Authentication Strategies  
 A *strategy* is a way of authenticating a user. You can use a strategy for allowing users to authenticate based on locally saved information (if you have them register first) or from a [variety of providers](http://www.passportjs.org/packages/) such as Google or Github.  
 
@@ -181,8 +187,9 @@ This strategy defines the local authentication process. It first checks for a ma
 
 Each Passport strategy will have its own unique settings to configure, and some (e.g. [passport-github](http://www.passportjs.org/packages/passport-github/)) use OAuth instead of username/password for authentication. In each case, the proper usage is documented within its respective repository.  
 
-The next challenge will setup the authentication strategy to be called in response to submitted form data in order to validate the user. 
+The next challenge will setup the authentication strategy to be called in response to submitted form data in order to validate the user.   
 
+---
 ### 7. How to Use Passport Strategies  
 In the `index.pug` file, there is a login form within the `if showLogin` conditional that is currently not being rendered because the `showLogin` variable has yet to be defined.  
 
@@ -207,6 +214,7 @@ app.route('/profile').get((req, res) => {
 });
 ```
 
+---
 ### 8. Create New Middleware  
 
 NOTE: As of 2/21/2019, the [second test run against this challenge on the fCC platform](https://github.com/freeCodeCamp/freeCodeCamp/blob/master/curriculum/challenges/english/06-information-security-and-quality-assurance/advanced-node-and-express/create-new-middleware.english.md#tests) looks for the presence of the text 'Home page' on the home page generated from the `index.pug` template. If it's not there it will fail, even if this challenge is coded correctly! The workaround I used: change the description `meta` tag in the `head` of the template to this:  
@@ -236,6 +244,7 @@ app.route('/profile').get(ensureAuthenticated, (req, res) => {
 });
 ```
 
+---
 ### 9. How to Put a Profile Together   
 Now that only authenticated users can access `/profile`, the information contained in `req.user` can be used on the page.
 
@@ -252,6 +261,7 @@ h2.center#welcome Welcome, #{username}!
 a(href='/logout') Logout
 ```
 
+---
 ### 10. Logging a User Out  
 Now, create the `/logout` route referenced in the profile template from the last challenge. This route should simply unauthenticate the user and redirect to the homepage. Using passport, unauthenticating is done by calling `req.logout();` before redirecting.  
 ```js
@@ -268,6 +278,7 @@ app.use((req, res, next) => {
 });
 ```
 
+---
 ### 11. Registration of New Users  
 
 NOTE: As of 2/22/2019, this challenge will NOT pass the fCC tests, even if the functionality is correct. See the issue and workaround [here](https://github.com/freeCodeCamp/freeCodeCamp/issues/17820#issue-338363681).
@@ -317,6 +328,7 @@ app.route('/register').post(
 );
 ```
 
+---
 ### 12. Hashing Your Passwords  
 In order to avoid storing passwords in plaintext, install [bcrypt](https://www.npmjs.com/package/bcrypt) as a dependency and require it in `server.js`.  
 ```console
@@ -347,23 +359,62 @@ In the `LocalStrategy` authentication strategy currently in use, password verifi
 if (!bcrypt.compareSync(password, user.password)) { return done(null, false); }
 ```
 
+---
 ### 13. Cleanup Your Project with Modules  
+Create two new files, `routes.js` and `auth.js`, in the project root directory:
+```console
+touch routes.js auth.js
+```
+In each of those files, add this code:  
+```js
+module.exports = function (app, db) {
 
+}
+```
+And, at the top of `server.js`, require those files:  
+```js
+const routes = require('./routes.js');
+const auth = require('./auth.js');
+```
+Now, take all of the routes in `server.js` and move them within `module.exports` in `routes.js`. Be sure and include all the necessary `require()` dependencies at the top of the file, above the exports.  Also move the `ensureAuthenticated` function into the exports, as this serves as middleware in the login route.  Back in `server.js`, put `routes(app, db);` where the moved routes one were to use this newly created module in their place.  
+
+Next, move everything from `server.js` related to authentication (session setup, passport init & serialization, local strategy) into the `module.exports` of `auth.js`, remembering to include all necessary `require()` dependencies above the exports. Back in `server.js` put `auth(app, db);` just above the `routes` module call (since the registration route depends upon passport initialization) to handle authentication with this newly created module.  
+
+Finally, in `server.js`, remove any `require()` dependencies that are no longer needed by that file.  
+
+If there are any errors at this point, an example of how the project should look at this stage is [here](https://glitch.com/#!/project/delicious-herring).  
+
+---
 ### 14. Implementation of Social Authentication (I)  
 
+
+---
 ### 15. Implementation of Social Authentication (II)  
 
+
+---
 ### 16. Implementation of Social Authentication (III)  
 
+
+---
 ### 17. Setup the Environment  
 
+
+---
 ### 18. Communicate by Emitting  
 
+
+---
 ### 19. Handle a Disconnect  
 
+
+---
 ### 20. Authentication with Socket&#46;io  
 https://www.freecodecamp.org/forum/t/youre-gonna-need-this-if-you-want-to-pass-authentication-with-socket-io-challenge/209460
 
+
+---
 ### 21. Announce New Users  
 
+---
 ### 22. Send and Display Chat Messages  
