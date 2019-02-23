@@ -9,3 +9,8 @@
   margin-left: auto;
   margin-right: auto;
 }
+
+.profile,
+.login {
+  margin-top: 100px;
+}
