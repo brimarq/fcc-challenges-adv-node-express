@@ -318,6 +318,34 @@ app.route('/register').post(
 ```
 
 ### 12. Hashing Your Passwords  
+In order to avoid storing passwords in plaintext, install [bcrypt](https://www.npmjs.com/package/bcrypt) as a dependency and require it in `server.js`.  
+```console
+npm install bcrypt
+```
+```js
+const bcrypt = require('bcrypt');
+```
+Password hashing will need to be handled in two key areas: when registering/saving a new user and verifying a password on login.  
+
+In the registration route `else` condition that saves a user to the database, create a `hash` from the submitted password with bcrypt and save *that* to the database instead of the password in plaintext.  
+```js
+let hash = bcrypt.hashSync(req.body.password, 12);
+db.collection('users').insertOne(
+  {username: req.body.username, password: hash},
+  (err, doc) => {
+    if(err) {
+      res.redirect('/');
+    } else {
+      next(null, user);
+    }
+  }
+);
+```
+In the `LocalStrategy` authentication strategy currently in use, password verification is done with `if (password !== user.password) { return done(null, false); }`, and authentication fails if the condition (submitted and stored passwords do NOT match) is true. BUT, bcrypt's `.compareSync(myPlaintextPassword, hash)` returns true when the passwords DO match. In order to return true upon password mismatch when using this bcrypt method in the authentication strategy, use `!` to return the opposite boolean value.  
+```js
+// if (password !== user.password) { return done(null, false); }
+if (!bcrypt.compareSync(password, user.password)) { return done(null, false); }
+```
 
 ### 13. Cleanup Your Project with Modules  
 
