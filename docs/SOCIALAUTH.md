@@ -5,9 +5,10 @@
 ## IMPORTANT:
 The challenges in this section are built upon a NEW starter project which may be cloned from [this Github repo](https://github.com/freeCodeCamp/boilerplate-socialauth/) and/or [imported into Glitch](https://glitch.com/#!/import/github/freeCodeCamp/boilerplate-socialauth/). 
 
-That said, be sure and *keep* the `SESSION_SECRET` and `MONGODB_URI` environment variables from the previous challenges (they can be re-used here) and, update the `mongo.connect()` method with the `{ useNewUrlParser: true }` option and correct env variable:  
+That said, be sure and *keep* the `SESSION_SECRET` and `MONGODB_URI` environment variables from the previous challenges (they can be re-used here) and, update the `mongo.connect()` method with the `{ useNewUrlParser: true }` option, correct env variable, and correction of the `db` variable (this method now returns the client, NOT the db!):  
 ```js
-mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, db) => {
+mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) => {
+  let db = client.db();
   // ...
 });
 ```
@@ -71,4 +72,33 @@ passport.use( new GitHubStrategy(
 
 ---
 ## 16. Implementation of Social Authentication (III)  
+The final part of the strategy is handling the profile returned from Github. 
 
+We need to query the database for the user, retrieving and returning the document if found; otherwise, creating and returning a new document populated with values from the profile. 
+
+Github provides a unique `id` within each profile that can be serialized (already implemented) and used as a search parameter. Here is an implementation that can be used within the verify function of the `GitHubStrategy`: 
+
+```js
+db.collection('socialusers').findAndModify(
+  {id: profile.id},
+  {},
+  { $setOnInsert: {
+      id: profile.id,
+      name: profile.displayName || 'John Doe',
+      photo: profile.photos[0].value || '',
+      email: profile.emails ? profile.emails[0].value : 'No public email',
+      created_on: new Date(),
+      provider: profile.provider || ''
+    },
+    $set: { last_login: new Date() }    $inc: { login_count: 1 }
+  },
+  {upsert: true, new: true},
+  (err, doc) => {
+    return cb(null, doc.value);
+  }
+);
+```
+
+The [findAndModify](http://mongodb.github.io/node-mongodb-native/3.1/api/Collection.html#findAndModify) method above (now depreciated), is used to find and/or "upsert" (update if exists, insert if not) a database document and return the new object each time in the callback function. In this example, we always set the `last_login` to now, increment the `login_count` by 1, and only when we insert a new object(new user) do we populate the majority of the fields. Something to notice also is the use of default values.  
+
+You should be able to login to your app nowand complete authentication. If you're running into errors, you can check out an example of this mini-project's finished code [here](https://glitch.com/#!/project/guttural 
