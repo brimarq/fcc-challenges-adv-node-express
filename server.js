@@ -6,6 +6,7 @@ const fccTesting  = require('./freeCodeCamp/fcctesting.js');
 const session     = require('express-session');
 const mongo       = require('mongodb').MongoClient;
 const passport    = require('passport');
+const GitHubStrategy = require('passport-github').Strategy;
 
 const app = express();
 
@@ -56,6 +57,18 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, db) => {
     *  ADD YOUR CODE BELOW
     */
 
+    passport.use( new GitHubStrategy(
+      {
+        clientID: process.env.GITHUB_CLIENT_ID,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET,
+        callbackURL: process.env.GITHUB_AUTH_CB_URL  /*INSERT CALLBACK URL ENTERED INTO GITHUB HERE*/
+      },
+      function(accessToken, refreshToken, profile, cb) {
+        console.log(profile);
+        //Database logic here with callback containing our user object
+      }
+    ));
+
     app.route('/auth/github').get(passport.authenticate('github'));
 
     app.route('/auth/github/callback').get(passport.authenticate('github', { failureRedirect: '/' }), (req, res) => { 
@@ -68,26 +81,21 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, db) => {
     *  ADD YOUR CODE ABOVE
     */
   
-    app.route('/')
-      .get((req, res) => {
-        res.render(process.cwd() + '/views/pug/index');
-      });
+    app.route('/').get((req, res) => {
+      res.render(process.cwd() + '/views/pug/index');
+    });
 
-    app.route('/profile')
-      .get(ensureAuthenticated, (req, res) => {
-            res.render(process.cwd() + '/views/pug/profile', {user: req.user});
-      });
+    app.route('/profile').get(ensureAuthenticated, (req, res) => {
+      res.render(process.cwd() + '/views/pug/profile', {user: req.user});
+    });
 
-    app.route('/logout')
-      .get((req, res) => {
-          req.logout();
-          res.redirect('/');
-      });
+    app.route('/logout').get((req, res) => {
+      req.logout();
+      res.redirect('/');
+    });
 
     app.use((req, res, next) => {
-      res.status(404)
-        .type('text')
-        .send('Not Found');
+      res.status(404).type('text').send('Not Found');
     });
   
     app.listen(process.env.PORT || 3000, () => {

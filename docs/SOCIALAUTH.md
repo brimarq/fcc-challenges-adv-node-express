@@ -38,7 +38,36 @@ app.route('/auth/github/callback').get(passport.authenticate('github', { failure
 
 ---
 ## 15. Implementation of Social Authentication (II)  
+The last part of setting up your Github authentication is to create the strategy itself. For this, you will need to add the [passport-github](http://www.passportjs.org/packages/passport-github/) dependency to your project and require it as `GithubStrategy` in `server.js`.  
 
+```console
+npm install passport-github
+```
+```js
+const GitHubStrategy = require('passport-github').Strategy;
+```
+
+To [set up the Github strategy](http://www.passportjs.org/packages/passport-github/#configure-strategy), passport must be directed to use a newly instantiated GithubStrategy, which accepts two arguments: 
+1. An object containing `clientID`, `clientSecret`, and `callbackURL`, and   
+2. a function to be called when a user is successfully authenticated  
+   
+NOTE: The authorization callback URL set when registering the app at Github can be saved in a `GITHUB_AUTH_CB_URL` variable in `.env`, which can then be referenced in the strategy. This works beautifully; but, unsurprisingly, *doing so will FAIL freeCodeCamp's tests for this challenge*, which apparently look for the actual URL string to be hardcoded there. So, in order to pass the automated tests, use the URL string. Meh.
+
+At this point, any authentication attempted from the "Login with Github!" link on the app homepage will fail with a "TokenError", as `cb` is never called to complete the authentication. That said, it should still receive the Github profile data and log it to the console. 
+
+```js
+passport.use( new GitHubStrategy(
+  {
+    clientID: process.env.GITHUB_CLIENT_ID,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    callbackURL: process.env.GITHUB_AUTH_CB_URL  /*INSERT CALLBACK URL ENTERED INTO GITHUB HERE*/
+  },
+  function(accessToken, refreshToken, profile, cb) {
+    console.log(profile);
+    //Database logic here with callback containing our user object
+  }
+));
+```
 
 ---
 ## 16. Implementation of Social Authentication (III)  
