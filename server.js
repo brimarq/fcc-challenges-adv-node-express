@@ -43,8 +43,12 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) 
 
 
   //start socket.io code  
+  let currentUsers = 0;
+
   io.on('connection', socket => {
+    ++currentUsers;
     console.log('A user has connected');
+    io.emit('user count', currentUsers);
   });
 
 

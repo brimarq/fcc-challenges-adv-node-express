@@ -30,7 +30,7 @@ io.on('connection', socket => {
 Now, for the client to connect, you just need to add the following to your `client.js` which is loaded by the page after you've authenticated:  
 ```js
 /*global io*/
-var socket = io();
+const socket = io();
 ```
 The comment suppresses the error you would normally see since 'io' is not defined in the file. We've already added a reliable CDN to the Socket.IO library on the page in `chat.pug`.
 
@@ -42,7 +42,30 @@ Submit your page when you think you've got it right.
 
 ---
 ## 18. Communicate by Emitting  
+*Emit* is the most common way of communicating you will use. When you emit something from the server to `io`, you send an event's name and data to all the connected sockets. A good example of this concept would be emitting the current count of connected users each time a new user connects.
 
+Start by adding a variable, just before the connection listener, to keep track of the number of connected users.  
+```js
+let currentUsers = 0;
+```
+
+Next, within the connection listener, you should 1) increment the `currentUsers` when someone connects and 2) emit a `'user count'` event that passes the `currentUsers` data.  
+```js
+io.on('connection', socket => {
+  ++currentUsers;
+  console.log('A user has connected');
+  io.emit('user count', currentUsers);
+});
+```
+
+Now, within `client.js`, you can implement a listener on the client, similar to the one on the server, by using the `.on()` method to listen for the `'user count'` event.
+
+```js
+socket.on('user count', function(data){
+  console.log(data);
+});
+```
+Now, authenticating a user in the app should reflect the number of connected users in the client console, and loading more clients will cause the number to increase accordingly.  
 
 ---
 ## 19. Handle a Disconnect  
