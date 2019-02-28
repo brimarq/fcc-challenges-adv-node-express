@@ -69,7 +69,23 @@ Now, authenticating a user in the app should reflect the number of connected use
 
 ---
 ## 19. Handle a Disconnect  
+At this point, the user count only increases. Handling a user disconnecting is just as easy as handling the initial connect, but *that* event must be handled by a listener on each socket rather than the whole server.  
 
+So, within the connection listener on the server, add a listener that listens for a `'disconnect'` event that passes no data (this functionality can be tested by logging "A user has disconnected." to the console).  Also - to ensure that clients continuously have the updated count of current users, you should decrease the `currentUsers` by 1 when the disconnect happens, then emit the `'user count'` event with the updated count.  
+```js
+// Handle client disconnects
+socket.on('disconnect', () => { 
+  /* anything you want to do on disconnect */
+  // Decrement connected user count
+  --currentUsers;
+  console.log("A user has disconnected.");
+  // Emit current connected user count
+  io.emit('user count', currentUsers);
+});
+```
+
+### NOTE: 
+Just like `'disconnect'`, all other events that a socket can emit to the server should be handled within the `'connection'` listener where `socket` is defined.
 
 ---
 ## 20. Authentication with Socket&#46;io  

@@ -49,6 +49,15 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) 
     ++currentUsers;
     console.log('A user has connected');
     io.emit('user count', currentUsers);
+
+    // Handle client disconnects
+    socket.on('disconnect', () => { 
+      // Decrement connected user count
+      --currentUsers;
+      console.log("A user has disconnected.");
+      // Emit current connected user count
+      io.emit('user count', currentUsers);
+    });
   });
 
 
