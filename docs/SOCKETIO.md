@@ -89,11 +89,33 @@ Just like `'disconnect'`, all other events that a socket can emit to the server 
 
 ---
 ## 20. Authentication with Socket&#46;io  
-https://www.freecodecamp.org/forum/t/youre-gonna-need-this-if-you-want-to-pass-authentication-with-socket-io-challenge/209460
+Currently, you cannot determine who is connected to your web socket. When users interact directly with the web server, `req.user` contains the user object; however, web sockets have no `req` (request) to make `req.user` available.  
 
+One way to solve this problem is by parsing, decoding, and deserializing the cookie that contains the passport session in order to obtain the user object. This once complex task can now be accomplished with the NPM package `passport.socketio`. Add this package as a dependency (if not already) and require it as `passportSocketIo`:  
+```js
+const passportSocketIo = require("passport.socketio");
+```
+
+Now we just have to tell <span>Socket.io</span> to use it and set the options. Be sure this is added before the existing socket code and *not* in the existing connection listener. For your server it should look as follows:   
+
+```js
+io.use(passportSocketIo.authorize({
+  cookieParser: cookieParser,
+  key: 'express.sid',
+  secret: process.env.SESSION_SECRET,
+  store: sessionStore
+}));
+```
+You can also optionally pass 'success' and 'fail' with a function that will be called after the authentication process completes when a client tries to connect.  
+
+The user object is now accessible on the socket object as `socket.request.user`; and, can be used, for example, to log who has connected to the server console:  
+```js
+console.log('user ' + socket.request.user.name + ' connected');
+```
 
 ---
 ## 21. Announce New Users  
+
 
 ---
 ## 22. Send and Display Chat Messages  

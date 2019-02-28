@@ -13,6 +13,7 @@ const app         = express();
 const http        = require('http').Server(app);
 const sessionStore = new session.MemoryStore();
 const io = require('socket.io')(http);
+const passportSocketIo = require("passport.socketio");
 
 
 fccTesting(app); //For FCC testing purposes
@@ -43,6 +44,13 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) 
 
 
   //start socket.io code  
+  io.use(passportSocketIo.authorize({
+    cookieParser: cookieParser,
+    key: 'express.sid',
+    secret: process.env.SESSION_SECRET,
+    store: sessionStore
+  }));
+
   let currentUsers = 0;
 
   io.on('connection', socket => {
