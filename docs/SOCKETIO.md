@@ -146,11 +146,8 @@ io.on('connection', socket => {
   });
 });
 ```
-### NOTE:  
-As of 2/28/2019, IN ORDER TO PASS the fCC tests for this challenge (because of the regex [in the test assertion](https://github.com/freeCodeCamp/freeCodeCamp/blob/master/curriculum/challenges/english/06-information-security-and-quality-assurance/advanced-node-and-express/announce-new-users.english.md#tests)), the `io.emit` methods above **MUST** be written on **ONE** line, like this:  
-```js
-io.emit('user', { name: socket.request.user.name, currentUsers: currentUsers, connected: true });
-```
+ 
+> NOTE: As of 2/28/2019, IN ORDER TO PASS the fCC tests for this challenge (because of the regex [in the test assertion](https://github.com/freeCodeCamp/freeCodeCamp/blob/master/curriculum/challenges/english/06-information-security-and-quality-assurance/advanced-node-and-express/announce-new-users.english.md#tests)), the `io.emit` methods above **MUST** be written on **ONE** LINE.   
 
 Now your client will have all the nesesary information to correctly display the current user count and annouce when a user connects or disconnects! 
 
@@ -173,3 +170,33 @@ socket.on('user', function(data) {
 
 ---
 ## 22. Send and Display Chat Messages  
+This challenge will allow clients to send a chat message to the server to be emitted to all connected clients. 
+
+Within the form handler in `client.js`, after `messageToSend` is defined and before clearing the input field, create a `'chat message'` event emitter on the `socket` that sends `messageToSend` as its data. In this case, make it a conditional that only emits when `messageToSend` is 'truthy' in order to prevent sending empty messages.  
+```js
+// Send message to server unless a blank message was submitted
+if (messageToSend) socket.emit('chat message', messageToSend);
+```
+
+On the server, create a socket listener that listens for the `'chat message'` event and passes the received `message` data into a function. Within this function, emit a `'chat message'` event to all sockets with a data object containing `name` and `message` keys with their appropriate values.  
+> NOTE: Again, in order to pass the fCC tests for this challenge, the `io.emit()` statement must be written on ONE LINE.  
+
+```js
+// Listen for 'chat message' events and emit them to all sockets with user name and message
+socket.on('chat message', message => {
+  io.emit('chat message', {
+    name: socket.request.user.name,
+    message: message
+  });
+});
+```
+
+Finally, back on the client in `client.js`, create a `'chat message'` event listener on the `socket` that passes the received `message` into a function that appends a new `<li>` to `<ul id="messages">` on the page rendered from `chat.pug`, with inner html containing the user name followed by a colon and the message text.  
+```js
+socket.on('chat message', function(message) {
+  $('#messages').append($('<li>').html('<b>'+ message.name + ': <\/b>' + message.message ));
+});
+```
+
+At this point the chat should be fully functional and sending messages across all clients. If you're running into errors, you can check out the project up to this point [here for the server](https://gist.github.com/JosephLivengood/3e4b7750f6cd42feaa2768458d682136) and [here for the client](https://gist.github.com/JosephLivengood/41ba76348df3013b7870dc64861de744).  
+

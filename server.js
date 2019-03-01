@@ -75,7 +75,18 @@ mongo.connect(process.env.MONGODB_URI, { useNewUrlParser: true }, (err, client) 
         connected: false
       });
     });
+
+    // Listen for 'chat message' events and emit them to all sockets with user name and message
+    socket.on('chat message', message => {
+      io.emit('chat message', {
+        name: socket.request.user.name,
+        message: message
+      });
+    });
+
   });
+
+  
 
 
   //end socket.io code
