@@ -115,7 +115,61 @@ console.log('user ' + socket.request.user.name + ' connected');
 
 ---
 ## 21. Announce New Users  
+Many chat rooms are able to annouce when users connect/disconnect and display these events to all connected users in the chat. Because these events are already being emitted here, they just need to be modified to support this feature. The most logical way of doing so is to send three values with the event:  
+1. Name of the user  
+2. Current user count  
+3. Connection status of the user  
 
+Change the name in both `'user count'` `.emit` events to `'user'` and pass a data object containing `name`, `currentUsers`, and `connected` keys with their corresponding values, with `connected` as a boolean `true` when connected and `false` when disconnected.  
+```js
+io.on('connection', socket => {
+  ++currentUsers;
+  console.log('A user has connected');
+  // Emit user status and connected user count on connect
+  io.emit('user', {
+    name: socket.request.user.name,
+    currentUsers: currentUsers,
+    connected: true
+  });
+
+  // Handle client disconnects
+  socket.on('disconnect', () => { 
+    // Decrement connected user count
+    --currentUsers;
+    console.log("A user has disconnected.");
+    // Emit user status and connected user count on disconnect
+    io.emit('user', {
+      name: socket.request.user.name,
+      currentUsers: currentUsers,
+      connected: false
+    });
+  });
+});
+```
+### NOTE:  
+As of 2/28/2019, IN ORDER TO PASS the fCC tests for this challenge (because of the regex [in the test assertion](https://github.com/freeCodeCamp/freeCodeCamp/blob/master/curriculum/challenges/english/06-information-security-and-quality-assurance/advanced-node-and-express/announce-new-users.english.md#tests)), the `io.emit` methods above **MUST** be written on **ONE** line, like this:  
+```js
+io.emit('user', { name: socket.request.user.name, currentUsers: currentUsers, connected: true });
+```
+
+Now your client will have all the nesesary information to correctly display the current user count and annouce when a user connects or disconnects! 
+
+Now, on the client side (in `client.js`), create a listener for the `'user'` event that will use jQuery to dynamically update the page rendered from `chat.pug` by:   
+1. updating the current user count in the text of `#num-users` and  
+2. appending a `<li>` to `<ul id="messages">` indicating that the user has joined/left the chat. 
+  
+```js
+socket.on('user', function(data) {
+  $('#num-users').text( data.currentUsers + ' users online' );
+  var message = data.name;
+  if(data.connected) {
+    message += ' has joined the chat.';
+  } else {
+    message += ' has left the chat.';
+  }
+  $('#messages').append($('<li>').html('<b>'+ message +'<\/b>'));
+});
+```
 
 ---
 ## 22. Send and Display Chat Messages  
